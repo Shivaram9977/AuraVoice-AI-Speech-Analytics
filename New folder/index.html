@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraVoice AI | Speech Analytics & Cognitive Coach</title>
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js for beautiful analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background decorative elements -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <!-- Top Glass Navigation Bar -->
+  <header class="navbar">
+    <div class="logo">
+      <i class="fa-solid fa-wand-magic-sparkles brand-icon"></i>
+      <span>AURA<span class="gradient-text">VOICE AI</span></span>
+    </div>
+    
+    <div class="status-panel">
+      <div id="connectionBadge" class="badge badge-warning">
+        <i class="fa-solid fa-circle-nodes"></i>
+        <span id="connectionText">Checking Connection...</span>
+      </div>
+      <div class="mode-badge">
+        <i class="fa-solid fa-microchip"></i>
+        <span>Cognitive Engine v1.0</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-container">
+    
+    <!-- LEFT SIDEBAR: Controls & History -->
+    <section class="sidebar-panel card">
+      <div class="card-header">
+        <h3><i class="fa-solid fa-sliders"></i> Control Center</h3>
+      </div>
+      
+      <!-- Recording Controls -->
+      <div class="control-box">
+        <button id="startBtn" class="record-btn">
+          <div class="record-icon-wrapper">
+            <i class="fa-solid fa-microphone mic-icon"></i>
+          </div>
+          <span class="btn-lbl">Start Recording</span>
+        </button>
+        
+        <p id="statusMsg" class="status-msg">Click the microphone to begin analyzing speech</p>
+      </div>
+
+      <!-- File Upload Area -->
+      <div class="upload-box" id="dropZone">
+        <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+        <p class="upload-title">Analyze Audio File</p>
+        <p class="upload-desc">Drag & drop or <span class="highlight-link" id="browseFileLink">browse files</span></p>
+        <p class="upload-formats">Supports WAV, MP3, M4A</p>
+      </div>
+      
+      <!-- Utility Actions -->
+      <div class="sidebar-actions">
+        <button id="downloadBtn" class="btn btn-secondary" disabled>
+          <i class="fa-solid fa-download"></i> Export Transcript
+        </button>
+        <button id="clearAllBtn" class="btn btn-danger">
+          <i class="fa-solid fa-trash-can"></i> Clear History
+        </button>
+      </div>
+
+      <!-- Voice Assistant Card -->
+      <div class="assistant-card">
+        <div class="assistant-header">
+          <span class="assistant-title"><i class="fa-solid fa-robot"></i> Jarvis Assistant</span>
+          <span class="pulse-dot"></span>
+        </div>
+        <p class="assistant-desc">Say: "open google", "what is time", or "hello"</p>
+        <div id="assistantResponse" class="assistant-response">Awaiting vocal command...</div>
+      </div>
+
+      <!-- History Section -->
+      <div class="history-section">
+        <h4><i class="fa-solid fa-clock-rotate-left"></i> Session History</h4>
+        <div class="history-scroll">
+          <ul id="historyList" class="history-list">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT SECTION: Main Speech Analysis Dashboard -->
+    <section class="analysis-panel">
+      
+      <!-- ROW 1: Real-time Audio wave & Spectrogram Visualizer -->
+      <div class="visualizer-card card">
+        <div class="card-header tabs">
+          <button class="tab-link active" data-tab="liveWaveTab">
+            <i class="fa-solid fa-wave-square"></i> Real-time Waveform
+          </button>
+          <button class="tab-link" data-tab="spectrogramTab" id="spectrogramTabBtn" disabled>
+            <i class="fa-solid fa-chart-area"></i> Mel-Spectrogram (ML Analysis)
+          </button>
+        </div>
+        
+        <div class="card-body">
+          <div id="liveWaveTab" class="tab-content active">
+            <div class="canvas-container">
+              <canvas id="visualizerCanvas"></canvas>
+              <div id="canvasOverlay" class="canvas-overlay">
+                <i class="fa-solid fa-microphone-slash"></i>
+                <span>Microphone inactive</span>
+              </div>
+            </div>
+          </div>
+          
+          <div id="spectrogramTab" class="tab-content">
+            <div class="spectrogram-container">
+              <div id="specPlaceholder" class="spec-placeholder">
+                <i class="fa-solid fa-chart-line spec-icon"></i>
+                <p>Upload an audio file to generate backend Fourier Transform frequency analysis.</p>
+              </div>
+              <img id="spectrogramImg" class="spectrogram-image" src="" alt="Mel Spectrogram Analysis" style="display: none;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2: Primary Performance Metrics -->
+      <div class="metrics-grid">
+        <!-- Metric 1: Fluency Score -->
+        <div class="metric-card card">
+          <div class="metric-info">
+            <p class="metric-title">Fluency Score</p>
+            <h3 id="fluencyVal" class="metric-value">100<span class="unit">%</span></h3>
+          </div>
+          <div class="metric-visual">
+            <div class="progress-ring">
+              <svg>
+                <circle cx="35" cy="35" r="30" class="ring-bg"></circle>
+                <circle cx="35" cy="35" r="30" class="ring-progress" id="fluencyRing"></circle>
+              </svg>
+              <i class="fa-solid fa-feather-pointed ring-icon color-fluency"></i>
+            </div>
+          </div>
+          <p class="metric-footer" id="fluencyFooter">Excellent speech flow</p>
+        </div>
+
+        <!-- Metric 2: Pacing (WPM) -->
+        <div class="metric-card card">
+          <div class="metric-info">
+            <p class="metric-title">Speech Pacing</p>
+            <h3 id="pacingVal" class="metric-value">--<span class="unit"> WPM</span></h3>
+          </div>
+          <div class="metric-visual">
+            <div class="progress-ring">
+              <svg>
+                <circle cx="35" cy="35" r="30" class="ring-bg"></circle>
+                <circle cx="35" cy="35" r="30" class="ring-progress" id="pacingRing"></circle>
+              </svg>
+              <i class="fa-solid fa-gauge-high ring-icon color-pacing"></i>
+            </div>
+          </div>
+          <p class="metric-footer" id="pacingFooter">Awaiting speech data</p>
+        </div>
+
+        <!-- Metric 3: Sentiment Score -->
+        <div class="metric-card card">
+          <div class="metric-info">
+            <p class="metric-title">Sentiment Tone</p>
+            <h3 id="sentimentVal" class="metric-value">Neutral</h3>
+          </div>
+          <div class="metric-visual">
+            <div class="progress-ring">
+              <svg>
+                <circle cx="35" cy="35" r="30" class="ring-bg"></circle>
+                <circle cx="35" cy="35" r="30" class="ring-progress" id="sentimentRing"></circle>
+              </svg>
+              <i class="fa-solid fa-face-smile ring-icon color-sentiment"></i>
+            </div>
+          </div>
+          <p class="metric-footer" id="sentimentFooter">Polite / Objective</p>
+        </div>
+      </div>
+
+      <!-- ROW 3: Transcription Output & Highlighted Filler Words -->
+      <div class="transcription-card card">
+        <div class="card-header flex-header">
+          <h3><i class="fa-solid fa-quote-left"></i> Speech Transcription</h3>
+          <div class="header-actions">
+            <span class="word-counter"><i class="fa-solid fa-file-word"></i> <span id="wordCountVal">0</span> Words</span>
+            <span class="duration-counter"><i class="fa-solid fa-stopwatch"></i> <span id="durationVal">0.0</span>s Duration</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="transcriptionText" class="transcription-text">
+            Transcription text will appear here in real-time. Filler words like <span class="filler-word">"like"</span>, <span class="filler-word">"um"</span>, and <span class="filler-word">"uh"</span> will be automatically highlighted in yellow to trace speak patterns.
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 4: Advanced Cognitive Insights (NLP Outputs) -->
+      <div class="insights-grid">
+        
+        <!-- NLP Insights 1: Keywords & Entities -->
+        <div class="insights-card card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-brain"></i> Cognitive NLP Analytics</h3>
+          </div>
+          <div class="card-body">
+            <!-- Keyphrases list -->
+            <div class="insight-section">
+              <h5><i class="fa-solid fa-tags"></i> Top Extracted Topics</h5>
+              <div id="keyphrasesList" class="pills-container">
+                <span class="empty-msg">No topics extracted yet</span>
+              </div>
+            </div>
+
+            <!-- Entities list -->
+            <div class="insight-section">
+              <h5><i class="fa-solid fa-id-card"></i> Named Entities Detected</h5>
+              <div class="entity-tabs">
+                <span class="entity-badge" id="entPerson"><i class="fa-solid fa-user"></i> People: <strong class="badge-num">0</strong></span>
+                <span class="entity-badge" id="entOrg"><i class="fa-solid fa-building"></i> Organizations: <strong class="badge-num">0</strong></span>
+                <span class="entity-badge" id="entGpe"><i class="fa-solid fa-earth-americas"></i> Locations: <strong class="badge-num">0</strong></span>
+                <span class="entity-badge" id="entDate"><i class="fa-solid fa-calendar"></i> Values/Dates: <strong class="badge-num">0</strong></span>
+              </div>
+              <div id="entitiesDetails" class="entities-details">
+                <!-- Dynamically filled with details -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NLP Insights 2: AI Executive Summary & Chart -->
+        <div class="insights-card card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-clipboard-list"></i> Executive Summary & Analytics</h3>
+          </div>
+          <div class="card-body split-body">
+            <div class="summary-box">
+              <h5><i class="fa-solid fa-pen-nib"></i> AI Summarization</h5>
+              <blockquote id="summaryText" class="summary-quote">
+                "A summary of longer speech files will be generated here using extraction algorithms to capture key points."
+              </blockquote>
+            </div>
+            
+            <div class="chart-box">
+              <canvas id="analyticsChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>AuraVoice AI Dashboard • Powered by Python, FastAPI, NLP (VADER), & Signal Processing (Librosa) • Suitability: CV Portfolio Project</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
