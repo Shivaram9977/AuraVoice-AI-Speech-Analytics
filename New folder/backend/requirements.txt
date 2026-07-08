@@ -1,9 +1,0 @@
-fastapi
-uvicorn
-python-multipart
-numpy
-librosa
-matplotlib
-nltk
-SpeechRecognition
-soundfile
