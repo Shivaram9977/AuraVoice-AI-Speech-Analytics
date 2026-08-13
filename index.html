@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraVoice AI | Professional Executive Speech Coach</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Google Identity Services (GIS) SDK -->
+  <script src="https://accounts.google.com/gsi/client" onload="initGoogleAuth()" async defer></script>
+  
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- VIEW 1: SIGN IN PAGE -->
+  <div id="loginView" class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">
+          <i class="fa-solid fa-microphone brand-icon"></i>
+          <span>AuraVoice AI</span>
+        </div>
+        <p class="login-subtitle">Executive Speech Analytics & Cognitive Coach</p>
+      </div>
+
+      <!-- Google Login Button -->
+      <button id="googleLoginBtn" class="btn btn-google btn-block" style="margin-bottom: 0.5rem;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" class="google-icon-img">
+        <span>Sign in with Google</span>
+      </button>
+      
+      <div class="login-divider">
+        <span>or sign in with email</span>
+      </div>
+      
+      <form id="loginForm" class="login-form">
+        <div class="form-group" id="fullNameGroup" style="display: none;">
+          <label for="nameInput">Full Name</label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-user input-icon"></i>
+            <input type="text" id="nameInput" placeholder="Sarah Jenkins">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="emailInput">Professional Email</label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-envelope input-icon"></i>
+            <input type="email" id="emailInput" placeholder="name@company.com" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="passwordInput">Password</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input type="password" id="passwordInput" placeholder="••••••••" required>
+          </div>
+        </div>
+
+        <div id="authAlert" style="display: none; font-size: 0.78rem; color: #ef4444; margin-bottom: 0.85rem; font-weight: 500; text-align: left; padding: 0.4rem 0.6rem; border-radius: 4px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2);">
+          <i class="fa-solid fa-triangle-exclamation"></i> <span id="authAlertMsg">Invalid credentials.</span>
+        </div>
+
+        <button type="submit" id="submitAuthBtn" class="btn btn-primary btn-block">
+          <span>Sign In to Dashboard</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+
+      <p class="switch-auth-mode" style="text-align: center; font-size: 0.8rem; margin-top: 1.1rem; color: var(--color-text-secondary);">
+        Don't have an account? <a href="#" id="toggleAuthModeLink" style="color: var(--accent-blue); text-decoration: underline; font-weight: 600;">Sign Up</a>
+      </p>
+      
+      <div class="login-divider">
+        <span>or</span>
+      </div>
+      
+      <button id="demoLoginBtn" class="btn btn-secondary btn-block">
+        <i class="fa-solid fa-circle-play"></i>
+        <span>Explore with Demo Account</span>
+      </button>
+
+      <div class="login-footer">
+        <p><i class="fa-solid fa-shield-halved"></i> Enterprise-grade audio encryption active</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: AUTHENTICATED APP WORKSPACE -->
+  <div id="appView" class="app-container" style="display: none;">
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+      <div class="logo">
+        <i class="fa-solid fa-microphone brand-icon"></i>
+        <span>AuraVoice <span class="badge-pro">PRO</span></span>
+      </div>
+      
+      <!-- Primary Navigation Tabs -->
+      <nav class="nav-links">
+        <button class="nav-link active" data-view="dashboardView">
+          <i class="fa-solid fa-chart-line"></i> Dashboard
+        </button>
+        <button class="nav-link" data-view="analyticsView">
+          <i class="fa-solid fa-clock-rotate-left"></i> History & Analytics
+        </button>
+        <button class="nav-link" data-view="profileView">
+          <i class="fa-regular fa-user"></i> Speaker Profile
+        </button>
+      </nav>
+      
+      <div class="nav-actions">
+        <div class="status-panel">
+          <span id="connectionBadge" class="status-dot warning"></span>
+          <span id="connectionText" class="status-label">Connecting...</span>
+        </div>
+        
+        <div class="user-menu" id="userMenuBtn">
+          <img id="navAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="Profile" class="nav-avatar">
+          <span id="navUsername" class="nav-username">Sarah Jenkins</span>
+          <i class="fa-solid fa-chevron-down chevron-icon"></i>
+          
+          <!-- Dropdown menu -->
+          <div class="dropdown-menu" id="userDropdown">
+            <div class="dropdown-header">
+              <strong id="dropName">Sarah Jenkins</strong>
+              <span id="dropTitle">Executive Communications VP</span>
+            </div>
+            <hr class="dropdown-divider">
+            <button class="dropdown-item" id="goToProfileBtn">
+              <i class="fa-regular fa-user"></i> My Profile
+            </button>
+            <button class="dropdown-item" id="logoutBtn">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="main-content">
+      
+      <!-- 1. DASHBOARD VIEW -->
+      <div id="dashboardView" class="view-content active">
+        <div class="dashboard-grid">
+          
+          <!-- LEFT SIDEBAR: Controls & History -->
+          <section class="sidebar-panel card">
+            <div class="card-header">
+              <h3><i class="fa-solid fa-sliders"></i> Control Center</h3>
+            </div>
+            
+            <!-- Recording Controls -->
+            <div class="control-box">
+              <button id="startBtn" class="record-btn">
+                <div class="record-icon-wrapper">
+                  <i class="fa-solid fa-microphone mic-icon"></i>
+                </div>
+                <span class="btn-lbl">Start Recording</span>
+              </button>
+              
+              <p id="statusMsg" class="status-msg">Click the microphone to begin analyzing speech</p>
+            </div>
+      
+            <!-- File Upload Area -->
+            <div class="upload-box" id="dropZone">
+              <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+              <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+              <p class="upload-title">Analyze Audio File</p>
+              <p class="upload-desc">Drag & drop or <span class="highlight-link" id="browseFileLink">browse files</span></p>
+              <p class="upload-formats">Supports WAV, MP3, M4A</p>
+            </div>
+            
+            <!-- Audio Playback Box -->
+            <div id="playbackContainer" class="playback-box" style="display: none;">
+              <p class="playback-title"><i class="fa-solid fa-volume-high"></i> Audio Playback</p>
+              <audio id="audioPlayback" controls class="custom-audio-player"></audio>
+            </div>
+            
+            <!-- Utility Actions -->
+            <div class="sidebar-actions">
+              <button id="downloadBtn" class="btn btn-secondary" disabled>
+                <i class="fa-solid fa-download"></i> Export Transcript
+              </button>
+              <button id="clearAllBtn" class="btn btn-danger">
+                <i class="fa-solid fa-trash-can"></i> Clear History
+              </button>
+            </div>
+      
+            <!-- History Section -->
+            <div class="history-section">
+              <h4><i class="fa-solid fa-clock-rotate-left"></i> Session History</h4>
+              <div class="history-scroll">
+                <ul id="historyList" class="history-list">
+                  <!-- Dynamically populated -->
+                </ul>
+              </div>
+            </div>
+          </section>
+      
+          <!-- RIGHT SECTION: Main Speech Analysis Dashboard -->
+          <section class="analysis-panel">
+            
+            <!-- ROW 1: Real-time Audio wave & Spectrogram Visualizer -->
+            <div class="visualizer-card card">
+              <div class="card-header tabs">
+                <button class="tab-link active" data-tab="liveWaveTab">
+                  <i class="fa-solid fa-wave-square"></i> Real-time Waveform
+                </button>
+                <button class="tab-link" data-tab="spectrogramTab" id="spectrogramTabBtn" disabled>
+                  <i class="fa-solid fa-chart-area"></i> Frequency Spectrogram
+                </button>
+              </div>
+              
+              <div class="card-body">
+                <div id="liveWaveTab" class="tab-content active">
+                  <div class="canvas-container">
+                    <canvas id="visualizerCanvas"></canvas>
+                    <div id="canvasOverlay" class="canvas-overlay">
+                      <i class="fa-solid fa-microphone-slash"></i>
+                      <span>Microphone inactive</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div id="spectrogramTab" class="tab-content">
+                  <div class="spectrogram-container">
+                    <div id="specPlaceholder" class="spec-placeholder">
+                      <i class="fa-solid fa-chart-line spec-icon"></i>
+                      <p>Upload an audio file to generate backend Fourier Transform frequency analysis.</p>
+                    </div>
+                    <img id="spectrogramImg" class="spectrogram-image" src="" alt="Frequency Spectrogram Analysis" style="display: none;">
+                  </div>
+                </div>
+              </div>
+            </div>
+      
+            <!-- ROW 2: Primary Performance Metrics -->
+            <div class="metrics-grid">
+              <!-- Metric 1: Fluency Score -->
+              <div class="metric-card card">
+                <p class="metric-title">Fluency Score</p>
+                <div class="metric-main">
+                  <h3 id="fluencyVal" class="metric-value">100<span class="unit">%</span></h3>
+                  <div class="progress-bar-track">
+                    <div class="progress-bar-fill color-fluency" id="fluencyBar" style="width: 100%;"></div>
+                  </div>
+                </div>
+                <p class="metric-footer" id="fluencyFooter">Excellent speech flow</p>
+              </div>
+      
+              <!-- Metric 2: Speech Pacing -->
+              <div class="metric-card card">
+                <p class="metric-title">Speech Pacing</p>
+                <div class="metric-main">
+                  <h3 id="pacingVal" class="metric-value">--<span class="unit"> WPM</span></h3>
+                  <div class="progress-bar-track">
+                    <div class="progress-bar-fill color-pacing" id="pacingBar" style="width: 0%;"></div>
+                  </div>
+                </div>
+                <p class="metric-footer" id="pacingFooter">Awaiting speech data</p>
+              </div>
+      
+              <!-- Metric 3: Sentiment Tone -->
+              <div class="metric-card card">
+                <p class="metric-title">Sentiment Tone</p>
+                <div class="metric-main">
+                  <h3 id="sentimentVal" class="metric-value">Neutral</h3>
+                  <div class="progress-bar-track">
+                    <div class="progress-bar-fill color-sentiment" id="sentimentBar" style="width: 50%;"></div>
+                  </div>
+                </div>
+                <p class="metric-footer" id="sentimentFooter">Polite / Objective</p>
+              </div>
+            </div>
+      
+            <!-- ROW 3: Transcription Output & Highlighted Filler Words -->
+            <div class="transcription-card card">
+              <div class="card-header flex-header">
+                <h3><i class="fa-solid fa-quote-left"></i> Speech Transcription</h3>
+                <div class="header-actions">
+                  <span class="word-counter"><i class="fa-solid fa-file-word"></i> <span id="wordCountVal">0</span> Words</span>
+                  <span class="duration-counter"><i class="fa-solid fa-stopwatch"></i> <span id="durationVal">0.0</span>s Duration</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="transcriptionText" class="transcription-text">
+                  Transcription text will appear here in real-time. Filler words like <span class="filler-word">"like"</span>, <span class="filler-word">"um"</span>, and <span class="filler-word">"uh"</span> will be automatically highlighted in yellow to trace speak patterns.
+                </div>
+              </div>
+            </div>
+      
+            <!-- ROW 4: Advanced Cognitive Insights (NLP Outputs) -->
+            <div class="insights-grid">
+              
+              <!-- NLP Insights 1: Keywords & Entities -->
+              <div class="insights-card card">
+                <div class="card-header">
+                  <h3><i class="fa-solid fa-chart-simple"></i> Speech & Vocabulary Analytics</h3>
+                </div>
+                <div class="card-body">
+                  <!-- Keyphrases list -->
+                  <div class="insight-section">
+                    <h5><i class="fa-solid fa-tags"></i> Top Extracted Topics</h5>
+                    <div id="keyphrasesList" class="pills-container">
+                      <span class="empty-msg">No topics extracted yet</span>
+                    </div>
+                  </div>
+      
+                  <!-- Entities list -->
+                  <div class="insight-section">
+                    <h5><i class="fa-solid fa-id-card"></i> Named Entities Detected</h5>
+                    <div class="entity-tabs">
+                      <span class="entity-badge" id="entPerson"><i class="fa-solid fa-user"></i> People: <strong class="badge-num">0</strong></span>
+                      <span class="entity-badge" id="entOrg"><i class="fa-solid fa-building"></i> Organizations: <strong class="badge-num">0</strong></span>
+                      <span class="entity-badge" id="entGpe"><i class="fa-solid fa-earth-americas"></i> Locations: <strong class="badge-num">0</strong></span>
+                      <span class="entity-badge" id="entDate"><i class="fa-solid fa-calendar"></i> Values/Dates: <strong class="badge-num">0</strong></span>
+                    </div>
+                    <div id="entitiesDetails" class="entities-details">
+                      <!-- Dynamically filled with details -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+      
+              <!-- Insights 2: Speech Summary & Chart -->
+              <div class="insights-card card">
+                <div class="card-header">
+                  <h3><i class="fa-solid fa-clipboard-list"></i> Executive Summary & Analytics</h3>
+                </div>
+                <div class="card-body split-body">
+                  <div class="summary-box">
+                    <h5><i class="fa-solid fa-pen-nib"></i> Speech Summary</h5>
+                    <blockquote id="summaryText" class="summary-quote">
+                      "A summary of longer speech files will be generated here to capture key points."
+                    </blockquote>
+                  </div>
+                  
+                  <div class="chart-box">
+                    <canvas id="analyticsChart"></canvas>
+                  </div>
+                </div>
+              </div>
+      
+            </div>
+      
+          </section>
+        </div>
+      </div>
+
+      <!-- 2. HISTORY & ANALYTICS VIEW -->
+      <div id="analyticsView" class="view-content">
+        <div class="analytics-layout">
+          <!-- Overview Cards -->
+          <div class="analytics-summary-cards">
+            <div class="summary-card card">
+              <div class="summary-card-icon color-fluency"><i class="fa-solid fa-face-smile"></i></div>
+              <div class="summary-card-info">
+                <h4>Average Fluency</h4>
+                <p id="avgFluency">94.2%</p>
+              </div>
+            </div>
+            
+            <div class="summary-card card">
+              <div class="summary-card-icon color-pacing"><i class="fa-solid fa-gauge-high"></i></div>
+              <div class="summary-card-info">
+                <h4>Average Pacing</h4>
+                <p id="avgPacing">134 WPM</p>
+              </div>
+            </div>
+            
+            <div class="summary-card card">
+              <div class="summary-card-icon color-sentiment"><i class="fa-solid fa-bolt"></i></div>
+              <div class="summary-card-info">
+                <h4>Total Coaching Sessions</h4>
+                <p id="totalSessions">8 Sessions</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Analytics Area -->
+          <div class="analytics-grid-two">
+            <!-- Large Analytics Log -->
+            <div class="card log-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-list-check"></i> Session Logs</h3>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="session-table">
+                    <thead>
+                      <tr>
+                        <th>Date & Time</th>
+                        <th>File / Source</th>
+                        <th>Duration</th>
+                        <th>Fluency</th>
+                        <th>Pacing</th>
+                        <th>Sentiment</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="sessionsTableBody">
+                      <!-- Populated dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Historical Performance Charts -->
+            <div class="card trend-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-chart-line"></i> Performance Trends</h3>
+              </div>
+              <div class="card-body">
+                <div class="analytics-chart-container">
+                  <canvas id="historicalChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. SPEAKER PROFILE VIEW -->
+      <div id="profileView" class="view-content">
+        <div class="profile-grid">
+          
+          <!-- Column 1: Profile Card & Target Benchmarks -->
+          <div class="profile-sidebar">
+            <div class="card profile-card-hero">
+              <div class="avatar-upload-container">
+                <img id="profileHeroAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="Sarah Jenkins" class="profile-hero-avatar">
+                <label for="avatarFileInput" class="avatar-edit-label">
+                  <i class="fa-solid fa-camera"></i>
+                  <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
+                </label>
+              </div>
+              
+              <h2 id="profileHeroName">Sarah Jenkins</h2>
+              <p id="profileHeroTitle">Executive Communications VP</p>
+              <div class="profile-badge-vip">AuraVoice Pro Member</div>
+            </div>
+
+            <div class="card profile-goals-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-bullseye"></i> Speech Coaching Targets</h3>
+              </div>
+              <div class="card-body">
+                <div class="goal-slider-group">
+                  <div class="goal-label-wrapper">
+                    <label for="targetWpmSlider">Target Pacing (WPM)</label>
+                    <span id="targetWpmVal">130 WPM</span>
+                  </div>
+                  <input type="range" id="targetWpmSlider" min="90" max="180" value="130" class="custom-slider">
+                  <p class="goal-helper">Optimal pacing for public presentations is 110-150 WPM.</p>
+                </div>
+
+                <div class="goal-slider-group">
+                  <div class="goal-label-wrapper">
+                    <label for="fillerWordsSlider">Max Filler Word Limit</label>
+                    <span id="fillerWordsVal">3 %</span>
+                  </div>
+                  <input type="range" id="fillerWordsSlider" min="1" max="10" value="3" class="custom-slider">
+                  <p class="goal-helper">Keeps your verbal clarity score above 90%.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Profile Settings & Info forms -->
+          <div class="profile-main-panel">
+            <div class="card settings-card">
+              <div class="card-header">
+                <h3><i class="fa-regular fa-id-card"></i> Personal Information</h3>
+              </div>
+              <div class="card-body">
+                <form id="profileDetailsForm" class="profile-form">
+                  <div class="form-row">
+                    <div class="form-group-half">
+                      <label for="profFullName">Full Name</label>
+                      <input type="text" id="profFullName" value="Sarah Jenkins" required class="form-input">
+                    </div>
+                    <div class="form-group-half">
+                      <label for="profTitle">Job Title</label>
+                      <input type="text" id="profTitle" value="Executive Communications VP" required class="form-input">
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group-half">
+                      <label for="profEmail">Email Address</label>
+                      <input type="email" id="profEmail" value="sarah.j@enterprise.com" required class="form-input">
+                    </div>
+                    <div class="form-group-half">
+                      <label for="profCompany">Organization</label>
+                      <input type="text" id="profCompany" value="AuraCorp Systems" class="form-input">
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-circle-check"></i> Save Personal Details
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card settings-card">
+              <div class="card-header">
+                <h3><i class="fa-solid fa-sliders"></i> Coaching & Voice Preferences</h3>
+              </div>
+              <div class="card-body">
+                <form id="voicePrefsForm" class="profile-form">
+                  <div class="form-row">
+                    <div class="form-group-half">
+                      <label for="voiceCoachGender">Jarvis Assistant Voice</label>
+                      <select id="voiceCoachGender" class="form-select">
+                        <option value="male">Male (Deep Tone)</option>
+                        <option value="female" selected>Female (Professional)</option>
+                        <option value="neutral">Neutral (Synth)</option>
+                      </select>
+                    </div>
+                    <div class="form-group-half">
+                      <label for="coachingLanguage">Analysis Language</label>
+                      <select id="coachingLanguage" class="form-select">
+                        <option value="en-US" selected>English (United States)</option>
+                        <option value="en-GB">English (United Kingdom)</option>
+                        <option value="es-ES">Spanish (Spain)</option>
+                        <option value="fr-FR">French (France)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group check-group">
+                    <input type="checkbox" id="autoDownloadCheck" class="custom-checkbox" checked>
+                    <label for="autoDownloadCheck">Automatically export analysis report PDF after uploaded audios</label>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Coaching Preferences
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div><!-- /#appView -->
+
+  <!-- Google Auth Loader Overlay (body-level so visible during login too) -->
+  <div id="authLoader" class="auth-loader-overlay" style="display: none;">
+    <div class="loader-content">
+      <i class="fa-solid fa-circle-notch fa-spin loader-spinner"></i>
+      <p>Connecting to Google Accounts...</p>
+    </div>
+  </div>
+
+  <!-- OTP Verification Overlay (body-level so visible during signup) -->
+  <div id="otpOverlay" class="auth-loader-overlay" style="display: none; z-index: 1100;">
+    <div class="loader-content" style="max-width: 380px; width: 100%;">
+      <i class="fa-solid fa-shield-halved" style="font-size: 2.2rem; color: var(--accent-blue); margin-bottom: 0.5rem;"></i>
+      <h3 style="margin-bottom: 0.5rem;">Verify Your Account</h3>
+      <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 1.25rem; line-height: 1.4;">
+        A 6-digit verification code has been sent to your email. Enter it below to create your account.
+      </p>
+      
+      <div class="form-group" style="margin-bottom: 1.25rem; width: 100%;">
+        <div class="input-wrapper" style="text-align: center;">
+          <input type="text" id="otpInput" maxlength="6" placeholder="------" 
+                 style="font-size: 1.6rem; letter-spacing: 0.25em; text-align: center; padding: 0.6rem 0; width: 100%; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.01); color: var(--color-text-main);">
+        </div>
+      </div>
+      <div id="otpAlert" style="display: none; font-size: 0.76rem; color: #ef4444; margin-bottom: 0.85rem; font-weight: 500;">
+        <i class="fa-solid fa-triangle-exclamation"></i> Invalid verification code. Please try again.
+      </div>
+      
+      <button id="verifyOtpBtn" class="btn btn-primary btn-block" style="margin-bottom: 0.65rem;">
+        Verify &amp; Create Account
+      </button>
+      
+      <button id="cancelOtpBtn" class="btn btn-secondary btn-block">
+        Cancel
+      </button>
+
+      <p style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 1.25rem; line-height: 1.45; border-top: 1px solid var(--border-color); padding-top: 0.85rem; width: 100%;">
+        <i class="fa-solid fa-envelope"></i> A verification code has been sent to your email. Please check your inbox.
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>AuraVoice Pro &bull; Professional Speech Analytics and Executive Coaching &bull; Secured Backend Engine</p>
+  </footer>
+
+  <script src="script.js?v=7.0.0"></script>
+</body>
+</html>
